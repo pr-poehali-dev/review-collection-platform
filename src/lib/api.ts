@@ -1,88 +1,84 @@
-const BASE_URL = 'https://functions.poehali.dev/e4cc9bd3-5dc1-4008-8a93-99fa8af01a9c';
+const REVIEWS_URL = 'https://functions.poehali.dev/e4cc9bd3-5dc1-4008-8a93-99fa8af01a9c';
+const MODERATION_URL = 'https://functions.poehali.dev/e4ecb7e3-7320-4176-a0dd-884fb1377560';
 
 export interface Review {
   id: number;
   author_name: string;
-  text: string;
   rating: number;
-  likes: number;
+  text: string;
+  helpful_count: number;
   created_at: string;
   status?: string;
 }
 
-export type SortOption = 'newest' | 'oldest' | 'best' | 'worst' | 'popular';
-
-export async function getReviews(sort: SortOption = 'newest'): Promise<Review[]> {
-  const res = await fetch(`${BASE_URL}/?sort=${sort}`);
-  const data = await res.json();
-  return data.reviews || [];
+export interface ReviewsResponse {
+  reviews: Review[];
+  total: number;
+  page: number;
+  pages: number;
+  stats: {
+    avg_rating: number;
+    total: number;
+    distribution: Record<string, number>;
+  };
 }
 
-export async function submitReview(payload: {
-  author_name: string;
-  text: string;
-  rating: number;
-}): Promise<{ id: number; status: string }> {
-  const res = await fetch(`${BASE_URL}/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || 'Ошибка при отправке');
-  }
+export interface ModerationResponse {
+  reviews: Review[];
+  total: number;
+  page: number;
+  pages: number;
+  counts: Record<string, number>;
+}
+
+export type SortOption = 'newest' | 'oldest' | 'best' | 'worst' | 'helpful';
+
+export async function getReviews(sort: SortOption = 'newest', page = 1): Promise<ReviewsResponse> {
+  const res = await fetch(`${REVIEWS_URL}?sort=${sort}&page=${page}&limit=20`);
   return res.json();
 }
 
-export async function getPendingReviews(key: string): Promise<Review[]> {
-  const res = await fetch(`${BASE_URL}/pending`, {
-    headers: { 'X-Moderator-Key': key },
-  });
-  if (!res.ok) throw new Error('Forbidden');
-  const data = await res.json();
-  return data.reviews || [];
-}
-
-export async function getAllReviews(key: string): Promise<Review[]> {
-  const res = await fetch(`${BASE_URL}/all`, {
-    headers: { 'X-Moderator-Key': key },
-  });
-  if (!res.ok) throw new Error('Forbidden');
-  const data = await res.json();
-  return data.reviews || [];
-}
-
-export async function approveReview(id: number, key: string): Promise<void> {
-  await fetch(`${BASE_URL}/approve`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Moderator-Key': key },
-    body: JSON.stringify({ id }),
-  });
-}
-
-export async function rejectReview(id: number, key: string): Promise<void> {
-  await fetch(`${BASE_URL}/reject`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Moderator-Key': key },
-    body: JSON.stringify({ id }),
-  });
-}
-
-export async function deleteReview(id: number, key: string): Promise<void> {
-  await fetch(`${BASE_URL}/delete`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Moderator-Key': key },
-    body: JSON.stringify({ id }),
-  });
-}
-
-export async function likeReview(id: number): Promise<number> {
-  const res = await fetch(`${BASE_URL}/like`, {
+export async function submitReview(data: { author_name: string; text: string; rating: number }) {
+  const res = await fetch(REVIEWS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
+    body: JSON.stringify(data),
   });
-  const data = await res.json();
-  return data.likes;
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка отправки');
+  return json;
+}
+
+export async function getModerationReviews(
+  key: string,
+  status = 'all',
+  page = 1
+): Promise<ModerationResponse> {
+  const res = await fetch(`${MODERATION_URL}?status=${status}&page=${page}&limit=20`, {
+    headers: { 'X-Moderator-Key': key },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка доступа');
+  return json;
+}
+
+export async function moderateReview(key: string, id: number, status: 'approved' | 'rejected') {
+  const res = await fetch(`${MODERATION_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Moderator-Key': key },
+    body: JSON.stringify({ status }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json;
+}
+
+export async function deleteReview(key: string, id: number) {
+  const res = await fetch(`${MODERATION_URL}/${id}`, {
+    method: 'DELETE',
+    headers: { 'X-Moderator-Key': key },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
+  return json;
 }
