@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Get all reviews as moderator",
+      "method": "GET",
+      "path": "/",
+      "headers": {"X-Moderator-Key": "spacework-admin-2024"},
+      "expectedStatus": 200,
+      "expectedBody": {"reviews": [], "counts": {}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reject unauthorized access",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "Неверный ключ доступа"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
