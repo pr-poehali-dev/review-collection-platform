@@ -47,9 +47,9 @@ export default function ReviewForm({ onSubmitted }: ReviewFormProps) {
         <p className="text-sm text-gray-500 mb-4">Он появится после проверки модератором.</p>
         <button
           onClick={() => setSuccess(false)}
-          className="text-sm text-primary hover:underline"
+          className="text-sm text-primary hover:underline font-medium"
         >
-          Оставить ещё один отзыв
+          Оставить ещё один
         </button>
       </div>
     );
@@ -71,7 +71,7 @@ export default function ReviewForm({ onSubmitted }: ReviewFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Рейтинг</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Рейтинг</label>
           <StarRating value={rating} onChange={setRating} size={28} />
         </div>
 
@@ -96,7 +96,7 @@ export default function ReviewForm({ onSubmitted }: ReviewFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-primary text-white font-medium py-2.5 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm"
+          className="w-full bg-primary text-primary-foreground font-medium py-2.5 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm"
         >
           {loading ? 'Отправляем...' : 'Отправить отзыв'}
         </button>

@@ -5,7 +5,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'oldest', label: 'Старые' },
   { value: 'best', label: 'Сначала хорошие' },
   { value: 'worst', label: 'Сначала плохие' },
-  { value: 'popular', label: 'Самые полезные' },
+  { value: 'helpful', label: 'Самые полезные' },
 ];
 
 interface SortBarProps {
@@ -15,11 +15,13 @@ interface SortBarProps {
 }
 
 export default function SortBar({ value, onChange, total }: SortBarProps) {
+  const label =
+    total === 1 ? 'отзыв' : total >= 2 && total <= 4 ? 'отзыва' : 'отзывов';
+
   return (
     <div className="flex items-center justify-between flex-wrap gap-3">
       <p className="text-sm text-gray-500">
-        <span className="font-semibold text-gray-900">{total}</span>{' '}
-        {total === 1 ? 'отзыв' : total >= 2 && total <= 4 ? 'отзыва' : 'отзывов'}
+        <span className="font-semibold text-gray-900">{total}</span> {label}
       </p>
       <div className="flex items-center gap-1.5 flex-wrap">
         {SORT_OPTIONS.map((opt) => (
@@ -28,7 +30,7 @@ export default function SortBar({ value, onChange, total }: SortBarProps) {
             onClick={() => onChange(opt.value)}
             className={`text-xs px-3 py-1.5 rounded-full border transition-all font-medium
               ${value === opt.value
-                ? 'bg-primary text-white border-primary'
+                ? 'bg-primary text-primary-foreground border-primary'
                 : 'border-gray-200 text-gray-500 hover:border-primary/40 hover:text-primary'
               }`}
           >
